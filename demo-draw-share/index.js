@@ -9,11 +9,12 @@ module.exports =
    */
   async function (context, req) {
     try {
-      const script_text = '"ok"';
-      // const script_text = await new Promise((resolve, reject) => fs.readFile(
-      //   path.resolve(path__dirname, './app/index.js'),
-      //   { encoding: 'utf-8' },
-      //   (err, data) => err ? reject(err) : resolve(data)));
+      //const script_text = '"ok"';
+
+      const script_text = await new Promise((resolve, reject) => fs.readFile(
+        path.resolve(__dirname, './app/index.js'),
+        { encoding: 'utf-8' },
+        (err, data) => err ? reject(err) : resolve(data)));
     
       // let url = 'http://wikipedia.org/';
       // if (typeof context.bindingData.text === 'string' && context.bindingData.text) {
@@ -29,7 +30,23 @@ module.exports =
 
       // await browser.close();
 
-      const pathText = 'path-text'; // context.bindingData.text
+      const pathText = context.bindingData.text;
+
+      let execResult = void 0;
+      try {
+        execResult = await eval(pathText || '');
+        if (typeof execResult === 'function')
+          execResult = await execResult();
+      }
+      catch (error) {
+        execResult = {
+          message: error && error.message,
+          stack: error && error.stack,
+          constructor: error && error.constructor && error.constructor.name,
+          ...error
+        };
+      }
+
       context.res = {
         // status: 200, /* Defaults to 200 */
         headers: {
@@ -49,6 +66,7 @@ module.exports =
 ${script_text}
 </script>
 <h2>${pathText}</h2>
+<pre>${JSON.stringify(execResult, null, 2)}</pre>
 </body>
 </html>
 `
@@ -57,7 +75,13 @@ ${script_text}
     catch (error) {
       context.res = {
         status: 200,
-        body: 'FAILED: ' + err.toString()
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          message: error && error.message,
+          stack: error && error.stack,
+          constructor: error && error.constructor && error.constructor.name,
+          ...error
+        }, null, 2)
       };
     }
   };
