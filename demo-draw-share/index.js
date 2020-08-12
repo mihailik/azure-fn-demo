@@ -21,36 +21,39 @@ module.exports =
         return '';
       });
 
-      const color32 = eval(colorText);
 
-      const png = new PNG({ width: 800, height: 600 });
-      const r = (0xff0000 & color32) / 0x10000;
-      const g = (0x00ff00 & color32) / 0x100;
-      const b = (0x0000ff & color32);
+      if (pngExtension) {
 
-      const borderColor = r + g + b < 128 * 3 ? 255 : 0;
-      const borderWidth = 10;
+        const color32 = eval(colorText);
 
-      for (let y = 0; y < png.height; y++) {
-        for (let x = 0; x < png.width; x++) {
-          const idx = (y * png.width + x) * 4;
-          if (Math.min(y, png.height - y, x, png.width - x) < borderWidth) {
-            png.data[idx] = borderColor;
-            png.data[idx + 1] = borderColor;
-            png.data[idx + 2] = borderColor;
-            png.data[idx + 3] = 255;
-          }
-          else {
-            png.data[idx] = r;
-            png.data[idx + 1] = g;
-            png.data[idx + 2] = b;
-            png.data[idx + 3] = 255;
+        const png = new PNG({ width: 800, height: 600 });
+        const r = (0xff0000 & color32) / 0x10000;
+        const g = (0x00ff00 & color32) / 0x100;
+        const b = (0x0000ff & color32);
+
+        const borderColor = r + g + b < 128 * 3 ? 255 : 0;
+        const borderWidth = 10;
+
+        for (let y = 0; y < png.height; y++) {
+          for (let x = 0; x < png.width; x++) {
+            const idx = (y * png.width + x) * 4;
+            if (Math.min(y, png.height - y, x, png.width - x) < borderWidth) {
+              png.data[idx] = borderColor;
+              png.data[idx + 1] = borderColor;
+              png.data[idx + 2] = borderColor;
+              png.data[idx + 3] = 255;
+            }
+            else {
+              png.data[idx] = r;
+              png.data[idx + 1] = g;
+              png.data[idx + 2] = b;
+              png.data[idx + 3] = 255;
+            }
           }
         }
-      }
 
-      const buf = PNG.sync.write(png);
-      if (pngExtension) {
+        const buf = PNG.sync.write(png);
+
         context.res = {
           headers: {
             'content-type': 'image/png'
@@ -62,9 +65,7 @@ module.exports =
 
         const cardUrl = context.req.url.replace(/\?.*$/, '') + '.png';
 
-        const pngUri = 'data:image/png;base64,' + buf.toString('base64');
         context.res = {
-          // status: 200, /* Defaults to 200 */
           headers: {
             'content-type': 'text/html'
           },
@@ -89,9 +90,7 @@ module.exports =
 <script>
 ${script_text}
 </script>
-<h2>${colorText} r${r} g${g} b${b} borderColor${borderColor}</h2>
-<img src="${pngUri}">
-<hr>
+<h2>${colorText}</h2>
 <img src="${cardUrl}">
 </body>
 </html>
