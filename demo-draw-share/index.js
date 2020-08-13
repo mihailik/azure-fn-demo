@@ -24,7 +24,7 @@ module.exports =
 
       if (pngExtension) {
 
-        const color32 = eval(colorText);
+        const color32 = parseColor(colorText);
 
         const png = new PNG({ width: 800, height: 600 });
         const r = (0xff0000 & color32) / 0x10000;
@@ -63,7 +63,7 @@ module.exports =
       }
       else {
 
-        const cardUrl = context.req.url.replace(/\?.*$/, '') + '.png';
+        const imageUrl = context.req.url.replace(/\?.*$/, '') + '.png';
 
         context.res = {
           headers: {
@@ -83,7 +83,8 @@ module.exports =
 <meta name="twitter:creator" content="@486timetable">
 <meta name="twitter:title" content="color:${colorText}">
 <meta name="twitter:description" content="PNG color of ${colorText}">
-<meta name="twitter:image" content="${cardUrl}">
+<meta name="twitter:image" content="${imageUrl}">
+<link rel="icon" type="image/png" href="${imageUrl}">
 
 </head>
 <body>
@@ -91,7 +92,7 @@ module.exports =
 ${script_text}
 </script>
 <h2>${colorText}</h2>
-<img src="${cardUrl}">
+<img src="${imageUrl}">
 </body>
 </html>
 `
@@ -112,3 +113,17 @@ ${script_text}
     }
     
   };
+
+function parseColor(colorText) {
+  if (/^0x/i.test(colorText))
+    colorText = colorText.slice(2);
+
+  if (colorText.length <= 3)
+    colorText =
+      colorText.charAt(0) + colorText.charAt(0) +
+      colorText.charAt(1) + colorText.charAt(1) +
+      colorText.charAt(2) + colorText.charAt(2);
+  
+  const rgbHex = parseInt(colorText, 16);
+  return rgbHex;
+}
