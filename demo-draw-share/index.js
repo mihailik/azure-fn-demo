@@ -20,7 +20,7 @@ module.exports =
       if (pngExtension) {
         context.res = {
           headers: { 'content-type': 'image/png' },
-          body: getPngBuffer(colorText);
+          body: getPngBuffer(colorText)
         };
       }
       else {
